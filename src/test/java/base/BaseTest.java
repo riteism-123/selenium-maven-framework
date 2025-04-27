@@ -42,21 +42,27 @@ public class BaseTest {
 		    ChromeOptions options = new ChromeOptions();
 		    options.addArguments("--no-sandbox");
 		    options.addArguments("--disable-dev-shm-usage");
+		    options.addArguments("--headless=new"); // Use headless mode
 		    options.addArguments("--remote-allow-origins=*");
-		    options.addArguments("--headless=new");
-		    options.addArguments("--user-data-dir=/tmp/unique-chromedir");
-
+		    
+		    // VERY IMPORTANT: use unique user-data-dir
+		    String uniqueUserDir = "/tmp/chrome-user-data-" + System.currentTimeMillis();
+		    options.addArguments("--user-data-dir=" + uniqueUserDir);
+		    
 		    driver = new ChromeDriver(options);
 		} else if (browserName.equalsIgnoreCase("edge")) {
 			WebDriverManager.edgedriver().setup();
-			EdgeOptions options = new EdgeOptions();
-			options.addArguments("--no-sandbox");
-			options.addArguments("--disable-dev-shm-usage");
-			options.addArguments("--remote-allow-origins=*");
-			options.addArguments("--headless=new");
-			options.addArguments("--user-data-dir=/tmp/unique-edgedir");
+		    EdgeOptions options = new EdgeOptions();
+		    options.addArguments("--no-sandbox");
+		    options.addArguments("--disable-dev-shm-usage");
+		    options.addArguments("--headless=new"); // Use headless mode
+		    options.addArguments("--remote-allow-origins=*");
 
-			driver = new EdgeDriver(options);
+		    // VERY IMPORTANT: use unique user-data-dir
+		    String uniqueUserDir = "/tmp/edge-user-data-" + System.currentTimeMillis();
+		    options.addArguments("--user-data-dir=" + uniqueUserDir);
+
+		    driver = new EdgeDriver(options);
 
 		} else if (browserName.equalsIgnoreCase("firefox")) {
 			WebDriverManager.firefoxdriver().setup();
