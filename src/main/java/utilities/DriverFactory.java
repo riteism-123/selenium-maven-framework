@@ -10,6 +10,7 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 
 import java.time.Duration;
+import java.util.UUID;
 
 public class DriverFactory {
 
@@ -24,7 +25,7 @@ public class DriverFactory {
 
     private static void initializeDriver() {
         String browserName = System.getProperty("browser", PropertyUtils.get("browser")).toLowerCase();
-        boolean isHeadless = Boolean.parseBoolean(System.getProperty("headless", "true")); // Default true for CI/CD
+        boolean isHeadless = Boolean.parseBoolean(System.getProperty("headless", PropertyUtils.get("headless")));
 
         switch (browserName) {
             case "firefox":
@@ -50,20 +51,46 @@ public class DriverFactory {
             case "chrome":
             default:
                 WebDriverManager.chromedriver().setup();
-                ChromeOptions chromeOptions = new ChromeOptions();
+                ChromeOptions options = new ChromeOptions();
                 if (isHeadless) {
-                    chromeOptions.addArguments("--headless=new");
-                    chromeOptions.addArguments("--window-size=1920,1080");
-                    chromeOptions.addArguments("--disable-gpu");
-                    chromeOptions.addArguments("--no-sandbox");
-                    chromeOptions.addArguments("--disable-dev-shm-usage");
+                	// Required for CI (random temp profile)
+                    String tmpProfilePath = System.getProperty("java.io.tmpdir") + "/chrome-profile-" + UUID.randomUUID();
+                    options.addArguments("--user-data-dir=" + tmpProfilePath);
+                    
+                    boolean isCI = System.getenv("CI") != null;
+
+                    if (isCI) {
+                        // Use temp profile (as above)
+                    } else {
+                        // Use local user-data-dir
+                        options.addArguments("--user-data-dir=C:/Users/R M/ChromeProfile");
+                    }
+                    
+                    
+
+                    options.addArguments("--disable-blink-features=AutomationControlled");
+                    options.addArguments("--no-sandbox");
+                    options.addArguments("--disable-dev-shm-usage");
+                    options.addArguments("--headless=new"); // headless mode for CI
+                    options.addArguments("--disable-gpu");
+                    options.addArguments("--window-size=1920,1080");
+
+                    options.setExperimentalOption("excludeSwitches", new String[]{"enable-automation"});
+                    options.setExperimentalOption("useAutomationExtension", false);
+
+                    // Disable password save prompts
+                    options.setExperimentalOption("prefs", java.util.Map.of(
+                        "credentials_enable_service", false,
+                        "profile.password_manager_enabled", false
+                    ));
                 }
-                driver.set(new ChromeDriver(chromeOptions));
+                driver.set(new ChromeDriver(options));
                 break;
         }
 
+        int implicitWaitTime = Integer.parseInt(PropertyUtils.get("implicitWait"));
         driver.get().manage().window().maximize();
-        driver.get().manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+        driver.get().manage().timeouts().implicitlyWait(Duration.ofSeconds(implicitWaitTime));
     }
 
     public static void quitDriver() {
