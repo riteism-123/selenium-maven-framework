@@ -5,6 +5,8 @@ on:
     branches: [ main, develop ]
   pull_request:
     branches: [ main, develop ]
+    
+  workflow_dispatch:
 
 jobs:
   build:
@@ -31,3 +33,34 @@ jobs:
 
     - name: Build with Maven
       run: mvn clean install
+      
+    - name: 📊 Capture test summary
+        id: test_summary
+        run: |
+          total=$(grep -oP '(?<=Tests run: )\d+' target/surefire-reports/*.txt | paste -sd+ - | bc)
+          failures=$(grep -oP '(?<=Failures: )\d+' target/surefire-reports/*.txt | paste -sd+ - | bc)
+          errors=$(grep -oP '(?<=Errors: )\d+' target/surefire-reports/*.txt | paste -sd+ - | bc)
+          skipped=$(grep -oP '(?<=Skipped: )\d+' target/surefire-reports/*.txt | paste -sd+ - | bc)
+          passed=$((total - failures - errors - skipped))
+          echo "total=$total" >> $GITHUB_OUTPUT
+          echo "passed=$passed" >> $GITHUB_OUTPUT
+          echo "failures=$failures" >> $GITHUB_OUTPUT
+          echo "errors=$errors" >> $GITHUB_OUTPUT
+          echo "skipped=$skipped" >> $GITHUB_OUTPUT
+
+      - name: 📤 Upload Test Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: |
+            target/surefire-reports
+            test-output/ExtentReport.html
+
+      - name: 📤 Upload Test Logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-logs
+          path: logs/test-execution.log
+
