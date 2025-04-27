@@ -65,7 +65,7 @@ jobs:
         id: find_log
         run: |
           # Find the latest Log file
-          log_path=$(ls -t log/app_*.log | head -n1)
+          log_path=$(ls -t logs/app_*.log | head -n1)
           echo "Found Log: $log_path"
           echo "log_path=$log_path" >> $GITHUB_ENV
 
