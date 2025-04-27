@@ -36,6 +36,8 @@ public class Log {
     public static void warn(String message) {
     	logger.warn(message);
     }
+
+	
 }
 
 
