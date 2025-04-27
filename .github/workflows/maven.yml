@@ -61,9 +61,17 @@ jobs:
           name: extent-timestamped-report
           path: ${{ env.report_path }}
 
-      - name: 📤 Upload Test Logs
+      - name: 🔍 Find the generated Log
+        id: find_log
+        run: |
+          # Find the latest Log file
+          log_path=$(ls -t log/app_*.log | head -n1)
+          echo "Found Log: $log_path"
+          echo "log_path=$log_path" >> $GITHUB_ENV
+
+      - name: 📤 Upload Timestamped Log
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-logs
-          path: logs/test-execution.log
+          path: ${{ env.log_path }}
