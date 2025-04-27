@@ -1,0 +1,107 @@
+name: Java CI with Docker + Selenium Grid
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Compose
+        run: |
+          docker-compose up --build --abort-on-container-exit
+
+      - name: ☕ Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: 📦 Cache Maven Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: 🔨 Build & Test (Headless)
+        run: |
+          echo "::group::Maven Clean and Verify"
+          mvn clean verify -Dheadless=true
+          echo "::endgroup::"
+
+      - name: 📊 Capture Test Summary
+        id: test_summary
+        run: |
+          total=$(grep -oP '(?<=Tests run: )\d+' target/surefire-reports/*.txt | paste -sd+ - | bc)
+          failures=$(grep -oP '(?<=Failures: )\d+' target/surefire-reports/*.txt | paste -sd+ - | bc)
+          errors=$(grep -oP '(?<=Errors: )\d+' target/surefire-reports/*.txt | paste -sd+ - | bc)
+          skipped=$(grep -oP '(?<=Skipped: )\d+' target/surefire-reports/*.txt | paste -sd+ - | bc)
+          passed=$((total - failures - errors - skipped))
+          echo "total=$total" >> $GITHUB_OUTPUT
+          echo "passed=$passed" >> $GITHUB_OUTPUT
+          echo "failures=$failures" >> $GITHUB_OUTPUT
+          echo "errors=$errors" >> $GITHUB_OUTPUT
+          echo "skipped=$skipped" >> $GITHUB_OUTPUT
+
+      - name: 🚨 Fail if no tests were executed
+        run: |
+          if [ "${{ steps.test_summary.outputs.total }}" == "0" ]; then
+            echo "❌ No tests were executed! Failing the job."
+            exit 1
+          fi
+
+      - name: 🔍 Find latest ExtentReport
+        id: find_report
+        run: |
+          report_path=$(ls -t reporting/ExtentReport_*.html | head -n1)
+          echo "Found report: $report_path"
+          echo "report_path=$report_path" >> $GITHUB_ENV
+
+      - name: 📤 Upload Timestamped ExtentReport
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: extent-timestamped-report
+          path: ${{ env.report_path }}
+
+      - name: 🔍 Find latest Log file
+        id: find_log
+        run: |
+          log_path=$(ls -t logs/app_*.log | head -n1)
+          echo "Found log: $log_path"
+          echo "log_path=$log_path" >> $GITHUB_ENV
+
+      - name: 📤 Upload Test Logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-logs
+          path: ${{ env.log_path }}
+
+      - name: 📤 Upload Test Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: |
+            target/surefire-reports/
+            test-output/
+
+      - name: 🚀 Deploy ExtentReport to GitHub Pages
+        if: github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./reporting
+          destination_dir: main
+          publish_branch: gh-pages
+          force_orphan: true
+

@@ -1,0 +1,7 @@
+target/
+logs/
+*.iml
+.idea/
+*.class
+*.log
+node_modules/
