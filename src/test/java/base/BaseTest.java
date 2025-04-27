@@ -53,6 +53,8 @@ public class BaseTest {
 			options.addArguments("--disable-dev-shm-usage");
 			options.addArguments("--remote-allow-origins=*");
 			options.addArguments("--headless=new");
+			options.addArguments("--user-data-dir=/tmp/unique-edgedir");
+
 			driver = new EdgeDriver(options);
 
 		} else if (browserName.equalsIgnoreCase("firefox")) {
