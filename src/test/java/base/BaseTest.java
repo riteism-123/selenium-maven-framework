@@ -39,13 +39,14 @@ public class BaseTest {
 
 		if (browserName.equalsIgnoreCase("chrome")) {
 			WebDriverManager.chromedriver().setup();
-			ChromeOptions options = new ChromeOptions();
-			options.addArguments("--no-sandbox");
-			options.addArguments("--disable-dev-shm-usage");
-			options.addArguments("--remote-allow-origins=*");
-			options.addArguments("--headless=new"); // optional if you want headless
-			driver = new ChromeDriver(options);
+		    ChromeOptions options = new ChromeOptions();
+		    options.addArguments("--no-sandbox");
+		    options.addArguments("--disable-dev-shm-usage");
+		    options.addArguments("--remote-allow-origins=*");
+		    options.addArguments("--headless=new");
+		    options.addArguments("--user-data-dir=/tmp/unique-chromedir");
 
+		    driver = new ChromeDriver(options);
 		} else if (browserName.equalsIgnoreCase("edge")) {
 			WebDriverManager.edgedriver().setup();
 			EdgeOptions options = new EdgeOptions();
