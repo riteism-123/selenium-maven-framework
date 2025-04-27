@@ -29,7 +29,7 @@ jobs:
             ${{ runner.os }}-maven-
 
       - name: Build and Test with Maven
-        run: mvn clean test -Dheadless=true
+        run: mvn clean test -Dheadless=false
         # 👆 Forces headless true to avoid "user data directory is already in use" issue in CI
 
       - name: 📊 Capture test summary
