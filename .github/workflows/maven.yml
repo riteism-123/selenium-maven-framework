@@ -50,7 +50,7 @@ jobs:
         id: find_report
         run: |
           # Find the latest ExtentReport HTML file
-          report_path=$(ls -t test-output/ExtentReport_*.html | head -n1)
+          report_path=$(ls -t reporting/ExtentReport_*.html | head -n1)
           echo "Found report: $report_path"
           echo "report_path=$report_path" >> $GITHUB_ENV
 
