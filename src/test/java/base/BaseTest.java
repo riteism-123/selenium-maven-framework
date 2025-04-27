@@ -46,7 +46,7 @@ public class BaseTest {
             ChromeOptions options = new ChromeOptions();
  
             // Required for CI (random temp profile)
-            String tmpProfilePath = System.getProperty("java.io.tmpdir") + "/chrome-profile-" + UUID.randomUUID();
+            String tmpProfilePath = System.getProperty("java.io.tmpdir") + "/chrome-profil-" + UUID.randomUUID();
             options.addArguments("--user-data-dir=" + tmpProfilePath);
             
             boolean isCI = System.getenv("CI") != null;
