@@ -29,8 +29,8 @@ jobs:
             ${{ runner.os }}-maven-
 
       - name: Build and Test with Maven
-        run: mvn clean test -Dheadless=false
-        # 👆 Forces headless true to avoid "user data directory is already in use" issue in CI
+        run: mvn clean test -Dheadless=true
+        # 👆 Forces headless true in CI to avoid GUI issues
 
       - name: 📊 Capture test summary
         id: test_summary
@@ -46,14 +46,20 @@ jobs:
           echo "errors=$errors" >> $GITHUB_OUTPUT
           echo "skipped=$skipped" >> $GITHUB_OUTPUT
 
-      - name: 📤 Upload Test Reports
+      - name: 🔍 Find the generated ExtentReport
+        id: find_report
+        run: |
+          # Find the latest ExtentReport HTML file
+          report_path=$(ls -t test-output/ExtentReport_*.html | head -n1)
+          echo "Found report: $report_path"
+          echo "report_path=$report_path" >> $GITHUB_ENV
+
+      - name: 📤 Upload Timestamped ExtentReport
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-reports
-          path: |
-            target/surefire-reports
-            test-output/ExtentReport.html
+          name: extent-timestamped-report
+          path: ${{ env.report_path }}
 
       - name: 📤 Upload Test Logs
         if: always()
