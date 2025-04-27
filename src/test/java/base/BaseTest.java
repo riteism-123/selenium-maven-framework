@@ -45,7 +45,7 @@ public class BaseTest {
 		Log.info("Starting test setup");
 
 		if (browserName.equalsIgnoreCase("chrome")) {
-			WebDriverManager.chromedriver().setup();
+			//WebDriverManager.chromedriver().setup();
             ChromeOptions options = new ChromeOptions();
  
             // Required for CI (random temp profile)
