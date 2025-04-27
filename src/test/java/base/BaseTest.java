@@ -4,6 +4,9 @@ import com.aventstack.extentreports.ExtentReports;
 import com.aventstack.extentreports.ExtentTest;
 import utilities.DriverFactory;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.UUID;
 
@@ -38,7 +41,7 @@ public class BaseTest {
 
 	@BeforeMethod
 	@Parameters("browser")
-	public void setUp(@Optional("chrome") String browserName) {
+	public void setUp(@Optional("chrome") String browserName) throws IOException {
 		Log.info("Starting test setup");
 
 		if (browserName.equalsIgnoreCase("chrome")) {
@@ -46,8 +49,12 @@ public class BaseTest {
             ChromeOptions options = new ChromeOptions();
  
             // Required for CI (random temp profile)
-            String tmpProfilePath = System.getProperty("java.io.tmpdir") + "/chrome-profil-" + UUID.randomUUID();
-            options.addArguments("--user-data-dir=" + tmpProfilePath);
+            String tmpProfilePath = System.getProperty("java.io.tmpdir") + "/chrome-profile-" + UUID.randomUUID();
+           // options.addArguments("--user-data-dir=" + tmpProfilePath);
+            Path tempDir = Files.createTempDirectory("selenium-profile-");
+            options.addArguments("--user-data-dir=" + tempDir.toAbsolutePath().toString());
+            
+            
             
             boolean isCI = System.getenv("CI") != null;
 
