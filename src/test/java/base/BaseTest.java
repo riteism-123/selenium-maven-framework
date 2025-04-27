@@ -3,6 +3,9 @@ package base;
 import com.aventstack.extentreports.ExtentReports;
 import com.aventstack.extentreports.ExtentTest;
 import utilities.DriverFactory;
+
+import java.time.Duration;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.WebDriver;
@@ -39,30 +42,32 @@ public class BaseTest {
 
 		if (browserName.equalsIgnoreCase("chrome")) {
 			WebDriverManager.chromedriver().setup();
-		    ChromeOptions options = new ChromeOptions();
-		    options.addArguments("--no-sandbox");
-		    options.addArguments("--disable-dev-shm-usage");
-		    options.addArguments("--headless=new"); // Use headless mode
-		    options.addArguments("--remote-allow-origins=*");
-		    
-		    // VERY IMPORTANT: use unique user-data-dir
-		    String uniqueUserDir = "/tmp/chrome-user-data-" + System.currentTimeMillis();
-		    options.addArguments("--user-data-dir=" + uniqueUserDir);
-		    
-		    driver = new ChromeDriver(options);
+            ChromeOptions options = new ChromeOptions();
+            options.addArguments("--no-sandbox");
+            options.addArguments("--disable-dev-shm-usage");
+            options.addArguments("--headless=new"); // headless mode
+            options.addArguments("--remote-allow-origins=*");
+            options.addArguments("--window-size=1920,1080");
+
+            // Fix: unique user-data-dir to avoid session errors
+            String uniqueUserDataDir = "/tmp/chrome-user-data-" + System.currentTimeMillis();
+            options.addArguments("--user-data-dir=" + uniqueUserDataDir);
+
+            driver = new ChromeDriver(options);
 		} else if (browserName.equalsIgnoreCase("edge")) {
 			WebDriverManager.edgedriver().setup();
-		    EdgeOptions options = new EdgeOptions();
-		    options.addArguments("--no-sandbox");
-		    options.addArguments("--disable-dev-shm-usage");
-		    options.addArguments("--headless=new"); // Use headless mode
-		    options.addArguments("--remote-allow-origins=*");
+            EdgeOptions options = new EdgeOptions();
+            options.addArguments("--no-sandbox");
+            options.addArguments("--disable-dev-shm-usage");
+            options.addArguments("--headless=new");
+            options.addArguments("--window-size=1920,1080");
 
-		    // VERY IMPORTANT: use unique user-data-dir
-		    String uniqueUserDir = "/tmp/edge-user-data-" + System.currentTimeMillis();
-		    options.addArguments("--user-data-dir=" + uniqueUserDir);
+            // Fix: unique user-data-dir for Edge too
+            String uniqueUserDataDir = "/tmp/edge-user-data-" + System.currentTimeMillis();
+            options.addArguments("--user-data-dir=" + uniqueUserDataDir);
 
-		    driver = new EdgeDriver(options);
+            driver = new EdgeDriver(options);
+
 
 		} else if (browserName.equalsIgnoreCase("firefox")) {
 			WebDriverManager.firefoxdriver().setup();
@@ -73,10 +78,11 @@ public class BaseTest {
 			driver = new FirefoxDriver(options);
 
 		} else {
-			throw new IllegalArgumentException("Invalid browser: " + browserName);
+			throw new RuntimeException("Unsupported browser: " + browserName);
 		}
 
 		driver.manage().window().maximize();
+        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
 		//driver.get(PropertyUtils.getProperty("url"));
 
 		//Log.info("Browser launched and navigated to URL: " + ConfigReader.getProperty("url"));
