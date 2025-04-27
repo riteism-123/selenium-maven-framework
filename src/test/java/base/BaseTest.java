@@ -5,6 +5,7 @@ import com.aventstack.extentreports.ExtentTest;
 import utilities.DriverFactory;
 
 import java.time.Duration;
+import java.util.UUID;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -43,17 +44,39 @@ public class BaseTest {
 		if (browserName.equalsIgnoreCase("chrome")) {
 			WebDriverManager.chromedriver().setup();
             ChromeOptions options = new ChromeOptions();
+ 
+            // Required for CI (random temp profile)
+            String tmpProfilePath = System.getProperty("java.io.tmpdir") + "/chrome-profile-" + UUID.randomUUID();
+            options.addArguments("--user-data-dir=" + tmpProfilePath);
+            
+            boolean isCI = System.getenv("CI") != null;
+
+            if (isCI) {
+                // Use temp profile (as above)
+            } else {
+                // Use local user-data-dir
+                options.addArguments("--user-data-dir=C:/Users/R M/ChromeProfile");
+            }   
+
+            options.addArguments("--disable-blink-features=AutomationControlled");
             options.addArguments("--no-sandbox");
             options.addArguments("--disable-dev-shm-usage");
-            options.addArguments("--headless=new"); // headless mode
+            options.addArguments("--headless=new"); // headless mode for CI
+            options.addArguments("--disable-gpu");
             options.addArguments("--remote-allow-origins=*");
-            options.addArguments("--window-size=1920,1080");
+            options.addArguments("--window-size=1920,1080");           
+         
+            options.setExperimentalOption("excludeSwitches", new String[]{"enable-automation"});
+            options.setExperimentalOption("useAutomationExtension", false);
 
-            // Fix: unique user-data-dir to avoid session errors
-            String uniqueUserDataDir = "/tmp/chrome-user-data-" + System.currentTimeMillis();
-            options.addArguments("--user-data-dir=" + uniqueUserDataDir);
+            // Disable password save prompts
+            options.setExperimentalOption("prefs", java.util.Map.of(
+                "credentials_enable_service", false,
+                "profile.password_manager_enabled", false
+            ));
 
             driver = new ChromeDriver(options);
+            
 		} else if (browserName.equalsIgnoreCase("edge")) {
 			WebDriverManager.edgedriver().setup();
             EdgeOptions options = new EdgeOptions();
