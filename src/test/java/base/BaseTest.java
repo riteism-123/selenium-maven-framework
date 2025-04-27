@@ -38,85 +38,86 @@ public class BaseTest {
 	public void beforeSuite() {
 		extent = ExtentManager.getExtentReports();
 	}
-
-	@BeforeMethod
-	@Parameters("browser")
-	public void setUp(@Optional("chrome") String browserName) throws IOException {
-		Log.info("Starting test setup");
-
-		if (browserName.equalsIgnoreCase("chrome")) {
-			//WebDriverManager.chromedriver().setup();
-            ChromeOptions options = new ChromeOptions();
- 
-            // Required for CI (random temp profile)
-            String tmpProfilePath = System.getProperty("java.io.tmpdir") + "/chrome-profile-" + UUID.randomUUID();
-           // options.addArguments("--user-data-dir=" + tmpProfilePath);
-            Path tempDir = Files.createTempDirectory("selenium-profile-");
-            options.addArguments("--user-data-dir=" + tempDir.toAbsolutePath().toString());
-            
-            
-            
-            boolean isCI = System.getenv("CI") != null;
-
-            if (isCI) {
-                // Use temp profile (as above)
-            } else {
-                // Use local user-data-dir
-                options.addArguments("--user-data-dir=C:/Users/R M/ChromeProfile");
-            }   
-
-            options.addArguments("--disable-blink-features=AutomationControlled");
-            options.addArguments("--no-sandbox");
-            options.addArguments("--disable-dev-shm-usage");
-            options.addArguments("--headless=new"); // headless mode for CI
-            options.addArguments("--disable-gpu");
-            options.addArguments("--remote-allow-origins=*");
-            options.addArguments("--window-size=1920,1080");           
-         
-            options.setExperimentalOption("excludeSwitches", new String[]{"enable-automation"});
-            options.setExperimentalOption("useAutomationExtension", false);
-
-            // Disable password save prompts
-            options.setExperimentalOption("prefs", java.util.Map.of(
-                "credentials_enable_service", false,
-                "profile.password_manager_enabled", false
-            ));
-
-            driver = new ChromeDriver(options);
-            
-		} else if (browserName.equalsIgnoreCase("edge")) {
-			WebDriverManager.edgedriver().setup();
-            EdgeOptions options = new EdgeOptions();
-            options.addArguments("--no-sandbox");
-            options.addArguments("--disable-dev-shm-usage");
-            options.addArguments("--headless=new");
-            options.addArguments("--window-size=1920,1080");
-
-            // Fix: unique user-data-dir for Edge too
-            String uniqueUserDataDir = "/tmp/edge-user-data-" + System.currentTimeMillis();
-            options.addArguments("--user-data-dir=" + uniqueUserDataDir);
-
-            driver = new EdgeDriver(options);
-
-
-		} else if (browserName.equalsIgnoreCase("firefox")) {
-			WebDriverManager.firefoxdriver().setup();
-			FirefoxOptions options = new FirefoxOptions();
-			options.addArguments("--no-sandbox");
-			options.addArguments("--disable-dev-shm-usage");
-			options.addArguments("--headless=new");
-			driver = new FirefoxDriver(options);
-
-		} else {
-			throw new RuntimeException("Unsupported browser: " + browserName);
-		}
-
-		driver.manage().window().maximize();
-        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
-		//driver.get(PropertyUtils.getProperty("url"));
-
-		//Log.info("Browser launched and navigated to URL: " + ConfigReader.getProperty("url"));
-	}
+	
+	 @BeforeMethod
+	    public void setUp() {
+		 driver = DriverFactory.getDriver();
+	    }
+	
+	
+		/*
+		 * @BeforeMethod
+		 * 
+		 * @Parameters("browser") public void setUp(@Optional("chrome") String
+		 * browserName) throws IOException { Log.info("Starting test setup");
+		 * 
+		 * if (browserName.equalsIgnoreCase("chrome")) {
+		 * //WebDriverManager.chromedriver().setup(); ChromeOptions options = new
+		 * ChromeOptions();
+		 * 
+		 * // Required for CI (random temp profile) String tmpProfilePath =
+		 * System.getProperty("java.io.tmpdir") + "/chrome-profile-" +
+		 * UUID.randomUUID(); // options.addArguments("--user-data-dir=" +
+		 * tmpProfilePath); Path tempDir =
+		 * Files.createTempDirectory("selenium-profile-");
+		 * options.addArguments("--user-data-dir=" +
+		 * tempDir.toAbsolutePath().toString());
+		 * 
+		 * 
+		 * 
+		 * boolean isCI = System.getenv("CI") != null;
+		 * 
+		 * if (isCI) { // Use temp profile (as above) } else { // Use local
+		 * user-data-dir
+		 * options.addArguments("--user-data-dir=C:/Users/R M/ChromeProfile"); }
+		 * 
+		 * options.addArguments("--disable-blink-features=AutomationControlled");
+		 * options.addArguments("--no-sandbox");
+		 * options.addArguments("--disable-dev-shm-usage");
+		 * options.addArguments("--headless=new"); // headless mode for CI
+		 * options.addArguments("--disable-gpu");
+		 * options.addArguments("--remote-allow-origins=*");
+		 * options.addArguments("--window-size=1920,1080");
+		 * 
+		 * options.setExperimentalOption("excludeSwitches", new
+		 * String[]{"enable-automation"});
+		 * options.setExperimentalOption("useAutomationExtension", false);
+		 * 
+		 * // Disable password save prompts options.setExperimentalOption("prefs",
+		 * java.util.Map.of( "credentials_enable_service", false,
+		 * "profile.password_manager_enabled", false ));
+		 * 
+		 * driver = new ChromeDriver(options);
+		 * 
+		 * } else if (browserName.equalsIgnoreCase("edge")) {
+		 * WebDriverManager.edgedriver().setup(); EdgeOptions options = new
+		 * EdgeOptions(); options.addArguments("--no-sandbox");
+		 * options.addArguments("--disable-dev-shm-usage");
+		 * options.addArguments("--headless=new");
+		 * options.addArguments("--window-size=1920,1080");
+		 * 
+		 * // Fix: unique user-data-dir for Edge too String uniqueUserDataDir =
+		 * "/tmp/edge-user-data-" + System.currentTimeMillis();
+		 * options.addArguments("--user-data-dir=" + uniqueUserDataDir);
+		 * 
+		 * driver = new EdgeDriver(options);
+		 * 
+		 * 
+		 * } else if (browserName.equalsIgnoreCase("firefox")) {
+		 * WebDriverManager.firefoxdriver().setup(); FirefoxOptions options = new
+		 * FirefoxOptions(); options.addArguments("--no-sandbox");
+		 * options.addArguments("--disable-dev-shm-usage");
+		 * options.addArguments("--headless=new"); driver = new FirefoxDriver(options);
+		 * 
+		 * } else { throw new RuntimeException("Unsupported browser: " + browserName); }
+		 * 
+		 * driver.manage().window().maximize();
+		 * driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+		 * //driver.get(PropertyUtils.getProperty("url"));
+		 * 
+		 * //Log.info("Browser launched and navigated to URL: " +
+		 * ConfigReader.getProperty("url")); }
+		 */
 
 	@AfterMethod(alwaysRun = true)
 	public void tearDown(ITestResult result) {
